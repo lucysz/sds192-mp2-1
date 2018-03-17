@@ -10,6 +10,7 @@ output:
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(base)
 library(ggmap)
 library(maps)
 library(mapdata)
@@ -21,6 +22,33 @@ load("house_elections.rda")
 load("candidates.rda")
 load("committees.rda")
 load("contributions.rda")
+```
+
+
+```{r}
+# Define the function that convert the state abbreviation to state's full name
+state_full_name <-function(x) {
+  state_df <- data.frame(
+     abb = c("","AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
+             "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME",
+             "MI", "MN", "MO", "MS",  "MT", "NC", "ND", "NE", "NH", "NJ", "NM",
+             "NV", "NY", "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN",
+             "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"),
+     full_name = c("","alaska","alabama","arkansas","arizona","california","colorado",
+                   "connecticut","district of columbia","delaware","florida","georgia",
+                   "hawaii","iowa","idaho","illinois","indiana","kansas","kentucky",
+                   "louisiana","massachusetts","maryland","maine","michigan","minnesota",
+                   "missouri","mississippi","montana","north carolina","north dakota",
+                   "nebraska","new hampshire","new jersey","new mexico","nevada",
+                   "new york","ohio","oklahoma","oregon","pennsylvania","puerto rico",
+                   "rhode island","south carolina","south dakota","tennessee","texas",
+                   "utah","virginia","vermont","washington","wisconsin",
+                   "west virginia","wyoming")
+ )
+  index <- as.numeric(which(state_df$abb == x))
+  return(as.character(state_df[index,2]))
+  
+}
 ```
 
 
@@ -36,6 +64,7 @@ candidate_2012 <- candidates %>%
   filter(cand_election_yr == 2012) %>%
   mutate(cand_party_affiliation = gsub("REP", "R", cand_party_affiliation),
          cand_party_affiliation = gsub("DEM", "D", cand_party_affiliation))
+candidate_2012$cand_state <- as.character(candidate_2012$cand_state)
 
 contributions$transaction_dt <- as.Date(contributions$transaction_dt, "%m%d%Y")
 contributions$transaction_amt <- as.numeric(contributions$transaction_amt)
@@ -53,19 +82,20 @@ contributions_2012 <- contributions %>%
   filter(n() == 2)
 
 candidate_contributions_2012 <- contributions_2012 %>%
-  inner_join(candidate_2012)
-
+  inner_join(candidate_2012) 
 
 candidate_contributions_2012_rep <- candidate_contributions_2012 %>%
    filter(cand_party_affiliation == "R" & transaction_type == "24E") %>%
    group_by(cand_state) %>%
-   summarize(state_donation = sum(total_donation))
+   summarize(state_donation = sum(total_donation)) 
+candidate_contributions_2012_rep$cand_state <- lapply(candidate_contributions_2012_rep$cand_state, FUN = state_full_name)
+
 
 candidate_contributions_2012_dem <- candidate_contributions_2012 %>%
    filter(cand_party_affiliation == "D" & transaction_type == "24E") %>%
    group_by(cand_state) %>%
    summarize(state_donation = sum(total_donation))
-
+candidate_contributions_2012_dem$cand_state <- lapply(candidate_contributions_2012_dem$cand_state, FUN = state_full_name)
 
 us <- map_data("state")
 gg <- ggplot()
@@ -76,28 +106,6 @@ gg <- gg + geom_map(data = us, map = us,
 
 
 
-state_full_name <-function(x) {
-  state_df <- data.frame(
-     abb = c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
-             "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME",
-             "MI", "MN", "MO", "MS",  "MT", "NC", "ND", "NE", "NH", "NJ", "NM",
-             "NV", "NY", "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN",
-             "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"),
-     full_name = c("alaska","alabama","arkansas","arizona","california","colorado",
-                   "connecticut","district of columbia","delaware","florida","georgia",
-                   "hawaii","iowa","idaho","illinois","indiana","kansas","kentucky",
-                   "louisiana","massachusetts","maryland","maine","michigan","minnesota",
-                   "missouri","mississippi","montana","north carolina","north dakota",
-                   "nebraska","new hampshire","new jersey","new mexico","nevada",
-                   "new york","ohio","oklahoma","oregon","pennsylvania","puerto rico",
-                   "rhode island","south carolina","south dakota","tennessee","texas",
-                   "utah","virginia","vermont","washington","wisconsin",
-                   "west virginia","wyoming")
- )
-  index <- as.numeric(which(state_df$abb == x))
-  return(as.character(state_df[index,2]))
-  
-}
 
 ```
 
