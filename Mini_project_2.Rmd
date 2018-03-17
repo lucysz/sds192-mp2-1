@@ -89,22 +89,69 @@ candidate_contributions_2012_rep <- candidate_contributions_2012 %>%
    group_by(cand_state) %>%
    summarize(state_donation = sum(total_donation)) 
 candidate_contributions_2012_rep$cand_state <- lapply(candidate_contributions_2012_rep$cand_state, FUN = state_full_name)
-
+candidate_contributions_2012_rep$cand_state <- as.character(candidate_contributions_2012_rep$cand_state)
 
 candidate_contributions_2012_dem <- candidate_contributions_2012 %>%
    filter(cand_party_affiliation == "D" & transaction_type == "24E") %>%
    group_by(cand_state) %>%
    summarize(state_donation = sum(total_donation))
 candidate_contributions_2012_dem$cand_state <- lapply(candidate_contributions_2012_dem$cand_state, FUN = state_full_name)
+candidate_contributions_2012_dem$cand_state <- as.character(candidate_contributions_2012_dem$cand_state)
 
-us <- map_data("state")
-gg <- ggplot()
-gg <- gg + geom_map(data = us, map = us,
-                    aes(x = long, y = lat, map_id = region),
-                    fill = "#FFFFFF", color = "#FFFFFF", size=0.2)
+states <- map_data("state")
+#head(states)
+states$cand_state <- states$region
+#head(states)
+map_rep <- inner_join(states, candidate_contributions_2012_rep, by ="cand_state")
+map_dem <- inner_join(states, candidate_contributions_2012_dem, by ="cand_state")
+
+
+rep <- ggplot()
+rep <- ggplot(data = states, mapping = aes(x = long, y = lat, group = group)) + 
+  geom_polygon(color = "grey87", fill = "grey87")
+
+rep <- rep + 
+      geom_polygon(data = map_rep, aes(fill = state_donation)) +
+      theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        panel.grid = element_blank(), 
+        panel.border = element_blank()) + 
+      scale_fill_gradient(low="mistyrose1", high="brown3", trans = "log") + 
+      ggtitle("Republican Donations in US 2012 Election (By States)") + 
+      theme(plot.title = element_text(size = rel(1))) + 
+      theme(legend.title = element_text(face = "bold")) + 
+      theme(title = element_text(face = "bold")) + 
+      guides(fill=guide_legend(title="State Donations")) + 
+      theme(plot.title = element_text(size = rel(1.2)))
+rep
 
 
 
+
+dem <- ggplot()
+dem <- ggplot(data = states, mapping = aes(x = long, y = lat, group = group)) + 
+  geom_polygon(color = "grey87", fill = "grey87")
+
+dem <- dem + 
+      geom_polygon(data = map_dem, aes(fill = state_donation)) +
+      theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        panel.grid = element_blank(), 
+        panel.border = element_blank()) + 
+      scale_fill_gradient(low="lightskyblue", high="royalblue4", trans = "log") + 
+      ggtitle("Democratic Donations in US 2012 Election (By States)") + 
+      theme(plot.title = element_text(size = rel(1))) + 
+      theme(legend.title = element_text(face = "bold")) + 
+      theme(title = element_text(face = "bold")) + 
+      guides(fill=guide_legend(title="State Donations")) + 
+      theme(plot.title = element_text(size = rel(1.2)))
+dem
 
 
 ```
