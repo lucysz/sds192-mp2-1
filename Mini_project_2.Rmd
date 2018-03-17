@@ -1,10 +1,18 @@
 ---
 title: "Mini_project2"
 output: html_document
+output:
+  html_document:
+    code_folding: hide
 ---
 
 ```{r,include = FALSE}
 library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggmap)
+library(maps)
+library(mapdata)
 ```
 
 
@@ -16,21 +24,80 @@ load("contributions.rda")
 ```
 
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 #glimpse(house_elections)
 #glimpse(candidates)
 #glimpse(committees)
 #glimpse(contributions)
 
-# Filter out the candidate data that is only for 2008 elections 
+# Filter out the candidate data that is only for 2012 elections 
 # Change the "REP" and "DEM" to "R" and "D" respectively
-candidate_2008 <- candidates %>%
-  filter(cand_election_yr == 2008) %>%
+candidate_2012 <- candidates %>%
+  filter(cand_election_yr == 2012) %>%
   mutate(cand_party_affiliation = gsub("REP", "R", cand_party_affiliation),
          cand_party_affiliation = gsub("DEM", "D", cand_party_affiliation))
 
-# Filter out all contribution that is "Independent expenditure advocating election of candidate"
-contributions_2008 <- contributions %>%
-  filter(transaction_type == "24E")
+contributions$transaction_dt <- as.Date(contributions$transaction_dt, "%m%d%Y")
+contributions$transaction_amt <- as.numeric(contributions$transaction_amt)
+
+# Normally, presidential election starts the fundrasiign 15-20 months before the election. So we consider that after February, 2011 the donation is for 2012 election since the 2012 election is on Nov.6th 2012 and we assume that the donation for 2012 election ends at the end of 2012
+
+# Filter out all contribution that is "Independent expenditure advocating/opposing election of candidate"
+# There are some 0 and negative amount and we will filter out those values and only consider the positive values 
+contributions_2012 <- contributions %>%
+  filter(transaction_dt >= "2011-02-01" & transaction_dt <= "2012-11-06") %>%
+  filter(transaction_type == "24E" | transaction_type == "24A") %>%
+  filter(transaction_amt > 0) %>%
+  group_by(cand_id,transaction_type) %>%
+  summarize(total_donation = sum(transaction_amt)) %>%
+  filter(n() == 2)
+
+candidate_contributions_2012 <- contributions_2012 %>%
+  inner_join(candidate_2012)
+
+
+candidate_contributions_2012_rep <- candidate_contributions_2012 %>%
+   filter(cand_party_affiliation == "R" & transaction_type == "24E") %>%
+   group_by(cand_state) %>%
+   summarize(state_donation = sum(total_donation))
+
+candidate_contributions_2012_dem <- candidate_contributions_2012 %>%
+   filter(cand_party_affiliation == "D" & transaction_type == "24E") %>%
+   group_by(cand_state) %>%
+   summarize(state_donation = sum(total_donation))
+
+
+us <- map_data("state")
+gg <- ggplot()
+gg <- gg + geom_map(data = us, map = us,
+                    aes(x = long, y = lat, map_id = region),
+                    fill = "#FFFFFF", color = "#FFFFFF", size=0.2)
+
+
+
+
+state_full_name <-function(x) {
+  state_df <- data.frame(
+     abb = c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
+             "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME",
+             "MI", "MN", "MO", "MS",  "MT", "NC", "ND", "NE", "NH", "NJ", "NM",
+             "NV", "NY", "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN",
+             "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"),
+     full_name = c("alaska","alabama","arkansas","arizona","california","colorado",
+                   "connecticut","district of columbia","delaware","florida","georgia",
+                   "hawaii","iowa","idaho","illinois","indiana","kansas","kentucky",
+                   "louisiana","massachusetts","maryland","maine","michigan","minnesota",
+                   "missouri","mississippi","montana","north carolina","north dakota",
+                   "nebraska","new hampshire","new jersey","new mexico","nevada",
+                   "new york","ohio","oklahoma","oregon","pennsylvania","puerto rico",
+                   "rhode island","south carolina","south dakota","tennessee","texas",
+                   "utah","virginia","vermont","washington","wisconsin",
+                   "west virginia","wyoming")
+ )
+  index <- as.numeric(which(state_df$abb == x))
+  return(as.character(state_df[index,2]))
+  
+}
+
 ```
 
