@@ -1,6 +1,5 @@
 ---
 title: "Mini_project2"
-output: html_document
 output:
   html_document:
     code_folding: hide
@@ -17,7 +16,7 @@ library(mapdata)
 ```
 
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 load("house_elections.rda")
 load("candidates.rda")
 load("committees.rda")
@@ -25,7 +24,7 @@ load("contributions.rda")
 ```
 
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 # Define the function that convert the state abbreviation to state's full name
 state_full_name <-function(x) {
   state_df <- data.frame(
@@ -52,7 +51,7 @@ state_full_name <-function(x) {
 ```
 
 
-```{r, message = FALSE, warning = FALSE}
+```{r, fig.width = 12, fig.height = 8, message = FALSE, warning = FALSE}
 #glimpse(house_elections)
 #glimpse(candidates)
 #glimpse(committees)
@@ -69,12 +68,13 @@ candidate_2012$cand_state <- as.character(candidate_2012$cand_state)
 contributions$transaction_dt <- as.Date(contributions$transaction_dt, "%m%d%Y")
 contributions$transaction_amt <- as.numeric(contributions$transaction_amt)
 
-# Normally, presidential election starts the fundrasiign 15-20 months before the election. So we consider that after February, 2011 the donation is for 2012 election since the 2012 election is on Nov.6th 2012 and we assume that the donation for 2012 election ends at the end of 2012
+# Normally, presidential election starts the fundrasiign 15-20 months before the election.
+# Conservatively we take all the donation two years before the election into account 
 
 # Filter out all contribution that is "Independent expenditure advocating/opposing election of candidate"
 # There are some 0 and negative amount and we will filter out those values and only consider the positive values 
 contributions_2012 <- contributions %>%
-  filter(transaction_dt >= "2011-02-01" & transaction_dt <= "2012-11-06") %>%
+  filter(transaction_dt >= "2010-11-06" & transaction_dt <= "2012-11-06") %>%
   filter(transaction_type == "24E" | transaction_type == "24A") %>%
   filter(transaction_amt > 0) %>%
   group_by(cand_id,transaction_type) %>%
@@ -119,17 +119,15 @@ rep <- rep +
             panel.background = element_blank(),
             panel.grid = element_blank(), 
             panel.border = element_blank(), 
-            text = element_text(size=10, face = "bold", color = "black")) + 
+            text = element_text(size=15, face = "bold", color = "black")) + 
       labs(title = "Republican Donations in US 2012 Election (By States)", 
            caption = "Source: Federal Election Commission") + 
       scale_fill_gradient(low="mistyrose1", high="brown3", trans = "log",
                           name = "State Donations", breaks = c(2980, 162755, 8886110.521),
                            labels = c("3000", "170000","9000000"))+
-      theme(legend.title = element_text(colour="red4", size=10, face="bold"))
+      theme(legend.title = element_text(colour="red4", size=15, face="bold"))
   
 rep
-
-
 
 
 dem <- ggplot()
@@ -145,13 +143,13 @@ dem <- dem +
             panel.background = element_blank(),
             panel.grid = element_blank(), 
             panel.border = element_blank(), 
-            text = element_text(size=10, face = "bold", color = "black")) + 
+            text = element_text(size=15, face = "bold", color = "black")) + 
       labs(title = "Democratic Donations in US 2012 Election (By States)", 
            caption = "Source: Federal Election Commission") +
       scale_fill_gradient(low="lightblue1", high="royalblue4", trans = "log",
                           name = "State Donations", breaks = c(2980, 59874, 1202604,24000000),
                           labels = c("3000", "60000","1200000","24000000"))+
-      theme(legend.title = element_text(colour="navy", size=10, face="bold"))
+      theme(legend.title = element_text(colour="navy", size=15, face="bold"))
     
 dem
 ```
