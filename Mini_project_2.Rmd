@@ -1,6 +1,7 @@
 ---
 title: "Mini_project2"
 output:
+  pdf_document: default
   html_document:
     code_folding: hide
 ---
@@ -13,6 +14,7 @@ library(base)
 library(ggmap)
 library(maps)
 library(mapdata)
+library(lubridate)
 ```
 
 
@@ -75,24 +77,22 @@ contributions$transaction_amt <- as.numeric(contributions$transaction_amt)
 # There are some 0 and negative amount and we will filter out those values and only consider the positive values 
 contributions_2012 <- contributions %>%
   filter(transaction_dt >= "2010-11-06" & transaction_dt <= "2012-11-06") %>%
-  filter(transaction_type == "24E" | transaction_type == "24A") %>%
-  filter(transaction_amt > 0) %>%
-  group_by(cand_id,transaction_type) %>%
-  summarize(total_donation = sum(transaction_amt)) %>%
-  filter(n() == 2)
+  filter(transaction_amt > 0 & transaction_type == "24E") %>%
+  group_by(cand_id) %>%
+  summarize(total_donation = sum(transaction_amt))
 
 candidate_contributions_2012 <- contributions_2012 %>%
-  inner_join(candidate_2012) 
+  inner_join(candidate_2012, by="cand_id") 
 
 candidate_contributions_2012_rep <- candidate_contributions_2012 %>%
-   filter(cand_party_affiliation == "R" & transaction_type == "24E") %>%
+   filter(cand_party_affiliation == "R") %>%
    group_by(cand_state) %>%
    summarize(state_donation = sum(total_donation)) 
 candidate_contributions_2012_rep$cand_state <- lapply(candidate_contributions_2012_rep$cand_state, FUN = state_full_name)
 candidate_contributions_2012_rep$cand_state <- as.character(candidate_contributions_2012_rep$cand_state)
 
 candidate_contributions_2012_dem <- candidate_contributions_2012 %>%
-   filter(cand_party_affiliation == "D" & transaction_type == "24E") %>%
+   filter(cand_party_affiliation == "D") %>%
    group_by(cand_state) %>%
    summarize(state_donation = sum(total_donation))
 candidate_contributions_2012_dem$cand_state <- lapply(candidate_contributions_2012_dem$cand_state, FUN = state_full_name)
@@ -123,8 +123,8 @@ rep <- rep +
       labs(title = "Republican Donations in US 2012 Election (By States)", 
            caption = "Source: Federal Election Commission") + 
       scale_fill_gradient(low="mistyrose1", high="brown3", trans = "log",
-                          name = "State Donations", breaks = c(2980, 162755, 8886110.521),
-                           labels = c("3000", "170000","9000000"))+
+                          name = "State Donations", breaks = c(100,3000, 170000, 9000000),
+                           labels = c("100","3000", "170000","9000000"))+
       theme(legend.title = element_text(colour="red4", size=15, face="bold"))
   
 rep
@@ -147,10 +147,42 @@ dem <- dem +
       labs(title = "Democratic Donations in US 2012 Election (By States)", 
            caption = "Source: Federal Election Commission") +
       scale_fill_gradient(low="lightblue1", high="royalblue4", trans = "log",
-                          name = "State Donations", breaks = c(2980, 59874, 1202604,24000000),
-                          labels = c("3000", "60000","1200000","24000000"))+
+                          name = "State Donations", breaks = c(100,5000, 300000,20000000),
+                          labels = c("100","5000","300000","20000000"))+
       theme(legend.title = element_text(colour="navy", size=15, face="bold"))
     
 dem
+```
+
+```{r, fig.width = 12, fig.height = 8, message = FALSE, warning = FALSE}
+contributions_state <- contributions %>%
+  filter(transaction_dt >= "2011-11-06" & transaction_dt <= "2012-11-06") %>%
+  filter(transaction_amt > 0 & transaction_type == "24E") 
+
+candidate_contributions_state <- contributions_state %>%
+  inner_join(candidate_2012, by="cand_id") %>%
+  filter(cand_party_affiliation == "R" | cand_party_affiliation == "D") %>%
+  group_by(cand_state) %>%
+  filter(n_distinct(cand_party_affiliation) == 2) %>%
+  group_by(cand_state,cand_party_affiliation) %>%
+  summarize(total_donation = sum(transaction_amt)) 
+
+candidate_contributions_state$total_donation <- sqrt(candidate_contributions_state$total_donation)
+
+candidate_contributions_state$cand_state[candidate_contributions_state$cand_state == ""] <- "Other"
+candidate_contributions_state$total_donation <- ifelse(candidate_contributions_state$cand_party_affiliation == "R", 
+                                                       -1 * candidate_contributions_state$total_donation,
+                                                       candidate_contributions_state$total_donation)
+
+gg <- ggplot(data = candidate_contributions_state, aes(x = cand_state, y = total_donation, fill = cand_party_affiliation)) + 
+	    geom_bar(stat="identity", position="identity") +
+      theme(axis.line = element_blank(),
+            panel.background = element_blank(),
+            panel.grid = element_blank(), 
+            panel.border = element_blank(), 
+            text = element_text(size=10, face = "bold", color = "black")) +
+      labs(x = "Candidate State", y = "State Donation")
+  
+gg
 ```
 
