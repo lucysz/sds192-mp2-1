@@ -53,7 +53,7 @@ state_full_name <-function(x) {
 ```
 
 
-```{r, fig.width = 12, fig.height = 8, message = FALSE, warning = FALSE}
+```{r, fig.width = 12, fig.height = 7, message = FALSE, warning = FALSE}
 #glimpse(house_elections)
 #glimpse(candidates)
 #glimpse(committees)
@@ -186,7 +186,7 @@ gg <- ggplot(data = candidate_contributions_state, aes(x = cand_state, y = total
             panel.background = element_rect(fill = "grey90",
                                 colour = "grey90",
                                 size = 0.5, linetype = "solid")) +
-      annotate(geom="text", x = c("TX", "TX"), y = c(5000, -5000), 
+      annotate(geom="text", x = c("TX", "TX"), y = c(5000, -7500), 
                label = c("Democratic", "Republican"), 
                size = 11, color = c("royalblue3","brown3"), fontface = 'bold')
       
