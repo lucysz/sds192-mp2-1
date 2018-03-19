@@ -49,6 +49,21 @@ state_full_name <-function(x) {
   return(as.character(state_df[index,2]))
   
 }
+
+# Define the function of graph
+gplot <- function(input) {
+  ggplot(data = states, mapping = aes(x = long, y = lat, group = group)) + 
+  geom_polygon(color = "white", fill = "white") +
+  geom_polygon(data = input, aes(fill = input$state_donation)) +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        panel.grid = element_blank(), 
+        panel.border = element_blank(), 
+        text = element_text(size=15, face = "bold", color = "black"))
+}
 ```
 
 
@@ -108,20 +123,7 @@ map_rep <- inner_join(states, candidate_contributions_2012_rep, by ="cand_state"
 map_dem <- inner_join(states, candidate_contributions_2012_dem, by ="cand_state")
 
 
-rep <- ggplot()
-rep <- ggplot(data = states, mapping = aes(x = long, y = lat, group = group)) + 
-  geom_polygon(color = "white", fill = "white")
-
-rep <- rep + 
-      geom_polygon(data = map_rep, aes(fill = state_donation)) +
-      theme(axis.title = element_blank(),
-            axis.text = element_blank(),
-            axis.line = element_blank(),
-            axis.ticks = element_blank(),
-            panel.background = element_blank(),
-            panel.grid = element_blank(), 
-            panel.border = element_blank(), 
-            text = element_text(size=15, face = "bold", color = "black")) + 
+rep <- gplot(map_rep) +
       labs(title = "Republican Donations in US 2012 Election (By States)", 
            caption = "Source: Federal Election Commission") + 
       scale_fill_gradient(low="mistyrose1", high="brown3", trans = "log",
@@ -131,21 +133,7 @@ rep <- rep +
   
 rep
 
-
-dem <- ggplot()
-dem <- ggplot(data = states, mapping = aes(x = long, y = lat, group = group)) + 
-  geom_polygon(color = "white", fill = "white")
-
-dem <- dem + 
-      geom_polygon(data = map_dem, aes(fill = state_donation)) +
-      theme(axis.title = element_blank(),
-            axis.text = element_blank(),
-            axis.line = element_blank(),
-            axis.ticks = element_blank(),
-            panel.background = element_blank(),
-            panel.grid = element_blank(), 
-            panel.border = element_blank(), 
-            text = element_text(size=15, face = "bold", color = "black")) + 
+dem <- gplot(map_dem) + 
       labs(title = "Democratic Donations in US 2012 Election (By States)", 
            caption = "Source: Federal Election Commission") +
       scale_fill_gradient(low="lightcyan", high="royalblue4", trans = "log",
