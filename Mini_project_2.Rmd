@@ -3,7 +3,6 @@ title: "Mini_project2"
 output:
   html_document:
     code_folding: hide
-  pdf_document: default
 ---
 
 ```{r,include = FALSE}
@@ -79,24 +78,27 @@ contributions_2012 <- contributions %>%
   filter(transaction_dt >= "2010-11-06" & transaction_dt <= "2012-11-06") %>%
   filter(transaction_amt > 0 & transaction_type == "24E") %>%
   group_by(cand_id) %>%
-  summarize(total_donation = sum(transaction_amt))
+  summarize(total_donation = sum(transaction_amt, na.rm =TRUE))
 
 candidate_contributions_2012 <- contributions_2012 %>%
-  inner_join(candidate_2012, by="cand_id") 
+  full_join(candidate_2012, by="cand_id") 
+
 
 candidate_contributions_2012_rep <- candidate_contributions_2012 %>%
    filter(cand_party_affiliation == "R") %>%
    group_by(cand_state) %>%
-   summarize(state_donation = sum(total_donation)) 
+   summarize(state_donation = sum(total_donation, na.rm =TRUE))
 candidate_contributions_2012_rep$cand_state <- lapply(candidate_contributions_2012_rep$cand_state, FUN = state_full_name)
 candidate_contributions_2012_rep$cand_state <- as.character(candidate_contributions_2012_rep$cand_state)
+candidate_contributions_2012_rep$state_donation[candidate_contributions_2012_rep$state_donation == 0] <- 1
 
 candidate_contributions_2012_dem <- candidate_contributions_2012 %>%
    filter(cand_party_affiliation == "D") %>%
    group_by(cand_state) %>%
-   summarize(state_donation = sum(total_donation))
+   summarize(state_donation = sum(total_donation, na.rm =TRUE))
 candidate_contributions_2012_dem$cand_state <- lapply(candidate_contributions_2012_dem$cand_state, FUN = state_full_name)
 candidate_contributions_2012_dem$cand_state <- as.character(candidate_contributions_2012_dem$cand_state)
+candidate_contributions_2012_dem$state_donation[candidate_contributions_2012_dem$state_donation == 0] <- 1
 
 states <- map_data("state")
 #head(states)
@@ -108,7 +110,7 @@ map_dem <- inner_join(states, candidate_contributions_2012_dem, by ="cand_state"
 
 rep <- ggplot()
 rep <- ggplot(data = states, mapping = aes(x = long, y = lat, group = group)) + 
-  geom_polygon(color = "grey87", fill = "grey87")
+  geom_polygon(color = "white", fill = "white")
 
 rep <- rep + 
       geom_polygon(data = map_rep, aes(fill = state_donation)) +
@@ -132,7 +134,7 @@ rep
 
 dem <- ggplot()
 dem <- ggplot(data = states, mapping = aes(x = long, y = lat, group = group)) + 
-  geom_polygon(color = "grey87", fill = "grey87")
+  geom_polygon(color = "white", fill = "white")
 
 dem <- dem + 
       geom_polygon(data = map_dem, aes(fill = state_donation)) +
@@ -146,7 +148,7 @@ dem <- dem +
             text = element_text(size=15, face = "bold", color = "black")) + 
       labs(title = "Democratic Donations in US 2012 Election (By States)", 
            caption = "Source: Federal Election Commission") +
-      scale_fill_gradient(low="lightblue1", high="royalblue4", trans = "log",
+      scale_fill_gradient(low="lightcyan", high="royalblue4", trans = "log",
                           name = "State Donations", breaks = c(100,5000, 300000,20000000),
                           labels = c("100","5000","300000","20000000"))+
       theme(legend.title = element_text(colour="navy", size=15, face="bold"))
