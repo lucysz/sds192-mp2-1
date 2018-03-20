@@ -1,15 +1,16 @@
 ---
-title: "Mini_project2"
+title: "2012 US Campaign Finance Data Visualization"
+author: "Zhu Shen, Jingyi Liu, Sarangoo Chimgee"
+date: "Due Date: 03/22/2018"
 output:
   html_document:
     code_folding: hide
 ---
 
 ```{r,include = FALSE}
+# Open the necessary libraries
 library(tidyverse)
-library(dplyr)
 library(ggplot2)
-library(base)
 library(ggmap)
 library(maps)
 library(mapdata)
@@ -18,6 +19,7 @@ library(ggthemes)
 
 
 ```{r, message = FALSE, warning = FALSE}
+# Load the dataset
 load("house_elections.rda")
 load("candidates.rda")
 load("committees.rda")
@@ -26,7 +28,7 @@ load("contributions.rda")
 
 
 ```{r, message = FALSE, warning = FALSE}
-# Define the function that convert the state abbreviation to state's full name
+# Define the function that convert the state abbreviation and state's full name
 state_name <-function(x) {
   state_df <- data.frame(
      abb = state.abb,
@@ -42,7 +44,7 @@ state_name <-function(x) {
   }
 }
 
-# Define the function of graph
+# Define the function of making the map
 gplot <- function(input) {
   ggplot(data = states, mapping = aes(x = long, y = lat, group = group)) + 
   geom_polygon(color = "white", fill = "white") +
@@ -67,15 +69,15 @@ candidate_2012 <- candidates %>%
   mutate(cand_party_affiliation = gsub("REP", "R", cand_party_affiliation),
          cand_party_affiliation = gsub("DEM", "D", cand_party_affiliation),
          cand_state = as.character(cand_state))
-
+# Change the class of the transaction_date to be "Date" and the transaction_amt to be "Numeric" 
 contributions <- contributions %>%
   mutate(transaction_date = as.Date(transaction_dt, "%m%d%Y"), 
          transaction_amt = as.numeric(transaction_amt))
 
-# Normally, presidential election starts the fundrasiign 15-20 months before the election.
+# Normally, presidential election starts the fundraising 15-20 months before the election.
 # Conservatively we take all the donation two years before the election into account 
 
-# Filter out all contribution that is "Independent expenditure advocating/opposing election of candidate"
+# Filter out all committees' contribution that is "Independent expenditure advocating election of candidate"
 # There are some 0 and negative amount and we will filter out those values and only consider the positive values 
 contributions_2012 <- contributions %>%
   filter(transaction_date >= "2010-11-06" & transaction_date <= "2012-11-06") %>%
@@ -83,15 +85,19 @@ contributions_2012 <- contributions %>%
   group_by(cand_id) %>%
   summarize(total_donation = sum(transaction_amt, na.rm =TRUE))
 
+# Full join the contribution and candidate data
 candidate_contributions_2012 <- contributions_2012 %>%
   full_join(candidate_2012, by="cand_id") 
 ```
+###Background
 
 ```{r, fig.width = 10, fig.height = 6, message = FALSE, warning = FALSE}
+# Only consider the transaction for election year 2012 and all committees' contribution that is "Independent expenditure advocating election of candidate"
 contributions_state <- contributions %>%
   filter(transaction_date >= "2011-11-06" & transaction_dt <= "2012-11-06") %>%
   filter(transaction_amt > 0 & transaction_type == "24E") 
 
+# Filter out the candidates from Democratic and Republican and for better visualization, we only consider the state with the contribution 
 candidate_contributions_state <- contributions_state %>%
   inner_join(candidate_2012, by="cand_id") %>%
   filter(cand_party_affiliation == "R" | cand_party_affiliation == "D") %>%
@@ -161,7 +167,7 @@ rep <- gplot(map_rep) +
            subtitle = "Source: Federal Election Commission") + 
       scale_fill_gradient(low="mistyrose1", high="brown3", trans = "log",
                           name = "State Donations", breaks = c(100,3000, 170000, 9000000),
-                           labels = c("100","3000", "170000","9000000"))+
+                           labels = c("100","3,000", "170,000","9,000,000"))+
       theme(legend.title = element_text(colour="red4", size=15, face="bold"))
   
 rep
@@ -171,8 +177,12 @@ dem <- gplot(map_dem) +
            subtitle = "Source: Federal Election Commission") +
       scale_fill_gradient(low="lightcyan", high="royalblue4", trans = "log",
                           name = "State Donations", breaks = c(100,5000, 300000,20000000),
-                          labels = c("100","5000","300000","20000000"))+
+                          labels = c("100","5,000","300,000","20,000,000"))+
       theme(legend.title = element_text(colour="navy", size=15, face="bold"))
     
 dem
 ```
+
+###Graphs 
+
+[Github](https://github.com/lucysz/sds192-mp2-1/blob/master/Mini_project_2.Rmd)
