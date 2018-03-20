@@ -69,6 +69,7 @@ candidate_2012 <- candidates %>%
   mutate(cand_party_affiliation = gsub("REP", "R", cand_party_affiliation),
          cand_party_affiliation = gsub("DEM", "D", cand_party_affiliation),
          cand_state = as.character(cand_state))
+
 # Change the class of the transaction_date to be "Date" and the transaction_amt to be "Numeric" 
 contributions <- contributions %>%
   mutate(transaction_date = as.Date(transaction_dt, "%m%d%Y"), 
