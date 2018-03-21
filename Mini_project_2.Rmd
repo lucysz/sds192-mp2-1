@@ -1,7 +1,7 @@
 ---
 title: "2012 US Campaign Finance Data Visualization"
 author: "Zhu Shen, Jingyi Liu, Sarangoo Chimgee"
-date: "Due Date: 03/22/2018"
+date: 'Due Date: 03/22/2018'
 output:
   html_document:
     code_folding: hide
@@ -9,9 +9,6 @@ output:
 
 ```{r,include = FALSE}
 # Open the necessary libraries
-install.packages(ggmap)
-install.packages(maps)
-install.packages(mapdata)
 library(tidyverse)
 library(ggplot2)
 library(ggmap)
@@ -28,6 +25,8 @@ load("candidates.rda")
 load("committees.rda")
 load("contributions.rda")
 ```
+
+
 
 
 ```{r, message = FALSE, warning = FALSE}
@@ -93,7 +92,9 @@ contributions_2012 <- contributions %>%
 candidate_contributions_2012 <- contributions_2012 %>%
   full_join(candidate_2012, by="cand_id") 
 ```
-###Background
+
+For this project, we analyzed the campaign finance data for Republican and Democratic parties across states in the 2012 election cycle. We only considered transactions that fall into the category of independent expenditure advocating the election of a candidate (24E) from the Contribution by Committee dataset. Since the candidate normally prepares for the election 15- 20 months before the election date, only contributions that took place between November 6, 2010 to November 6, 2012 are considered. By grouping the total amount of the contribution by states and parties, we manage to visualize the campaign finance discrepancy between parties and distributions among states.
+
 
 ###Graphs 
 
@@ -146,6 +147,15 @@ gg <- ggplot(data = candidate_contributions_state, aes(x = cand_state, y = norm_
   
 gg
 ```
+
+The bar graph shows the contributions for two parties across the states in 2012, which only includes states with contribution amounts from both parties for comparison. The extreme discrepancy of the bar length for both parties in the same state shows that Georgia, Indiana, Massachusetts and Missouri are mostly Republican states, and Illinois and Montana are Democratic states. As the home states of two candidates for presidency, Massachusetts inclined mostly to Republican and Illinois inclined mostly to the Democratic. This result is unexpected because Massachusetts has a long-standing Democratic preference. Some explanations for this unusual pattern include: 
+
++ Massachusetts had more support for Republican candidate Romney because it is his home state.  
+
++ The Massachusetts governor in 2012 was a Republican, so people were a lot more inclined to support moderate Republicans. 
+
++ Republican candidate got a lot more donations but donations did not correlate to voters sentiments or leaning. Another interesting state is Florida, with long bars for both parties, is known to have an extremely diverse political preference.
+
 
 ```{r, fig.width = 12, fig.height = 7, message = FALSE, warning = FALSE}
 # split the data of independent expenditure in the election cycle of 2012 by parties
@@ -203,5 +213,30 @@ dem <- gplot(map_dem) +
     
 dem
 ```
+
+These two US states maps show the geological distribution of the contribution across states; the darker the color, the more contribution to the candidates from that state. In the map for Republican candidates, Massachusetts, Pennsylvania, Florida and Texas are the darkest, which means these states contributed the most while Kansas and Mississippi are the lightest, showing that these states contributed the least. The total contribution from Alaska, Delaware, Vermont is missing from the dataset. Similarly, in the map for Democratic candidates, Illinois, California, and Florida contributed the most while Louisiana, Vermont, and Missouri contributed the least, even lower than $500. In the map, the contribution for nine states is missing.  
+
+Why there are no records of independent expenditure supporting the candidate from these states? Checking these states one by one, we can conclude several reasons for these missing records. 
+
++ When the Transaction Does Not Fall into the Category of 24E
+
+If a candidate has only 24E transactions and no 24K transactions, the candidate is most likely to be preparing for their next election cycle by transferring their excess contributions to later elections. Don Young, a U.S Representative for Alaska's at-large congressional district since 1973, had no sign of 24E transactions mainly because of two reasons: his popularity and the inactive political participation of Alaska. This explains the reason for no 24K transactions because he has had the overwhelming majority in every campaign since 2010 and the apolitical stance of Alaska shows how Alaskan citizens have no incentive to act politically. 
+
++ Only Candidate in the Election
+
+If a candidate is the only nominee in the election, then people will no incentive to contribute money to this candidate because the candidate will be elected for sure. For example, Terri Sewell was the only candidate to file for the Democratic nomination in 2012 in Alabama. Even though we can find her name and ID in the candidate data, there is no record of the independent expenditure for her in the contribution data. 
+
++ Term Limit
+
+If a candidate has already served for two consecutive terms in the previous years, the candidate could not seek re-election due to the term limit. An example is  Kenneth Corn, who served in the Oklahoma State Senate, representing District 4 from 2002 to 2010, but was not re-elected due to the term limit. 
+
++ Other Reasons
+
+There are many other possible reasons. For example, the candidate is so unpopular that all the contribution comes from personal saving; or the state is apolitical that citizens did not care much about the political election; or there are some missing records in the data files when the data was recorded initially, etc. 
+
+####Conclusion
+
+We've learned that the overcomplexity and the immense size of the data doesn't excuse the data to be missing; instead, it entails that in the real world and the normality of having data such size, conditions and special cases like the above shows that the assumed "missing" data is not actually missing, but it's a part of how data works and requires to interpret it in a different way.
+
 
 [Github](https://github.com/lucysz/sds192-mp2-1/blob/master/Mini_project_2.Rmd)
