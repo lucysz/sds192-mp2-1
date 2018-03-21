@@ -98,7 +98,8 @@ contributions_state <- contributions %>%
   filter(transaction_date >= "2011-11-06" & transaction_dt <= "2012-11-06") %>%
   filter(transaction_amt > 0 & transaction_type == "24E") 
 
-# Filter out the candidates from Democratic and Republican and for better visualization, we only consider the state with the contribution 
+# Filter out the candidates from Democratic and Republican and for better visualization, we only consider the state with the contribution data for both parties. 
+# Because some of the contribution amount is extremely large, we normalize the amount for better comparison by taking the square root. 
 candidate_contributions_state <- contributions_state %>%
   inner_join(candidate_2012, by="cand_id") %>%
   filter(cand_party_affiliation == "R" | cand_party_affiliation == "D") %>%
@@ -110,6 +111,7 @@ candidate_contributions_state <- contributions_state %>%
   mutate(norm_total_donation = sqrt(total_donation)) %>%
   mutate(norm_total_donation = ifelse(cand_party_affiliation == "R", -1*norm_total_donation, norm_total_donation))
 
+# Creating the tornado graph with the data, x axis is the stae, y axis is the normalized donation and the colors are representative colors for two parties.
 gg <- ggplot(data = candidate_contributions_state, aes(x = cand_state, y = norm_total_donation, fill = cand_party_affiliation)) + 
 	    geom_bar(stat="identity", position="identity") +
       theme_bw() +
@@ -141,22 +143,29 @@ gg
 ```
 
 ```{r, fig.width = 12, fig.height = 7, message = FALSE, warning = FALSE}
+# split the data of independent expenditure in the election cycle of 2012 by parties
+# Sum up the contribution by state
 candidate_contributions_2012_rep <- candidate_contributions_2012 %>%
    filter(cand_party_affiliation == "R") %>%
    group_by(cand_state) %>%
    summarize(state_donation = sum(total_donation, na.rm =TRUE))
-candidate_contributions_2012_rep$cand_state <- lapply(candidate_contributions_2012_rep$cand_state, FUN = state_name)
-candidate_contributions_2012_rep$cand_state <- as.character(candidate_contributions_2012_rep$cand_state)
-candidate_contributions_2012_rep$state_donation[candidate_contributions_2012_rep$state_donation == 0] <- 1
 
 candidate_contributions_2012_dem <- candidate_contributions_2012 %>%
    filter(cand_party_affiliation == "D") %>%
    group_by(cand_state) %>%
    summarize(state_donation = sum(total_donation, na.rm =TRUE))
+
+# Apply the conversion function of state abbreviation to state full name to each of the party data set
+candidate_contributions_2012_rep$cand_state <- lapply(candidate_contributions_2012_rep$cand_state, FUN = state_name)
+candidate_contributions_2012_rep$cand_state <- as.character(candidate_contributions_2012_rep$cand_state)
 candidate_contributions_2012_dem$cand_state <- lapply(candidate_contributions_2012_dem$cand_state, FUN = state_name)
 candidate_contributions_2012_dem$cand_state <- as.character(candidate_contributions_2012_dem$cand_state)
+
+# Change the 0 values in the data file to be 1 because later we will use the log transition. We convert 0 to 1 to avoid the undefining issue. 
+candidate_contributions_2012_rep$state_donation[candidate_contributions_2012_rep$state_donation == 0] <- 1
 candidate_contributions_2012_dem$state_donation[candidate_contributions_2012_dem$state_donation == 0] <- 1
 
+# get the states data from the map_data package 
 states <- map_data("state")
 states$cand_state <- states$region
 map_rep <- inner_join(states, candidate_contributions_2012_rep, by ="cand_state")
