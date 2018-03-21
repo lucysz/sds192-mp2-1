@@ -117,6 +117,7 @@ candidate_contributions_state <- contributions_state %>%
   mutate(norm_total_donation = sqrt(total_donation)) %>%
   mutate(norm_total_donation = ifelse(cand_party_affiliation == "R", -1*norm_total_donation, norm_total_donation))
 
+# Build a vector that arrange the name of the state based on the contribution ratio of two parties
 cand_list <- candidate_contributions_state %>%
   group_by(cand_state) %>%
   mutate(total_donation_state = sum(abs(norm_total_donation)),
@@ -126,7 +127,8 @@ cand_list <- candidate_contributions_state %>%
   select(cand_state) %>%
   .$cand_state
 
-# Creating the tornado graph with the data, x axis is the stae, y axis is the normalized donation and the colors are representative colors for two parties.
+# Creating the tornado graph with the data, x axis is the state, y axis is the normalized donation and the colors are representative colors for two parties. The bars are arranged based on the ratio of D-contribution to R-contribution from largest to lowest
+
 gg <- ggplot(data = candidate_contributions_state, aes(x = factor(cand_state, level = cand_list), y = norm_total_donation, fill = cand_party_affiliation)) + 
 	    geom_bar(stat="identity", position="identity") +
       theme_bw() +
@@ -148,7 +150,7 @@ gg <- ggplot(data = candidate_contributions_state, aes(x = factor(cand_state, le
             panel.grid.major.y = element_line(size=.3, color="grey70", linetype = "dashed")) +
       annotate(geom="text", x = c("NJ", "NJ"), y = c(4250, -6000), 
                label = c("Democratic", "Republican"), 
-               size = 11, alpha = 0.8, color = c("royalblue3","brown3"), fontface = 'bold') +
+               size = 11, color = c("royalblue3","brown3"), fontface = 'bold') +
       annotate(geom = "segment", x = "IL", xend = "HI", y = 4500, yend = 4500, size = 0.5) +
       annotate(geom = "text", x = "HI", y = 5200, label = "Barack Obama's\n Home State", fontface = "bold", hjust = 0, vjust = 1, size = 5)+
       annotate(geom = "segment", x = "MA", xend = "KY", y = -7000, yend = -7000, size = 0.5) +
