@@ -9,6 +9,9 @@ output:
 
 ```{r,include = FALSE}
 # Open the necessary libraries
+install.packages(ggmap)
+install.packages(maps)
+install.packages(mapdata)
 library(tidyverse)
 library(ggplot2)
 library(ggmap)
@@ -178,7 +181,7 @@ map_rep <- inner_join(states, candidate_contributions_2012_rep, by ="cand_state"
 map_dem <- inner_join(states, candidate_contributions_2012_dem, by ="cand_state")
 
 
-# Create the amp for Republican 
+# Create the map for Republican 
 rep <- gplot(map_rep) +
       labs(title = "Republican Donations in US 2012 Election (By States)", 
            subtitle = "Source: Federal Election Commission") + 
@@ -189,7 +192,7 @@ rep <- gplot(map_rep) +
   
 rep
 
-# Create the amp for Democratic 
+# Create the map for Democratic 
 dem <- gplot(map_dem) + 
       labs(title = "Democratic Donations in US 2012 Election (By States)", 
            subtitle = "Source: Federal Election Commission") +
