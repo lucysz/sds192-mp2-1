@@ -92,6 +92,8 @@ candidate_contributions_2012 <- contributions_2012 %>%
 ```
 ###Background
 
+###Graphs 
+
 ```{r, fig.width = 10, fig.height = 6, message = FALSE, warning = FALSE}
 # Only consider the transaction for election year 2012 and all committees' contribution that is "Independent expenditure advocating election of candidate"
 contributions_state <- contributions %>%
@@ -167,11 +169,16 @@ candidate_contributions_2012_dem$state_donation[candidate_contributions_2012_dem
 
 # get the states data from the map_data package 
 states <- map_data("state")
+
+# Add another column named cand_state with same element as the column region 
 states$cand_state <- states$region
+
+# Join the states data and contribution data files by cand_state
 map_rep <- inner_join(states, candidate_contributions_2012_rep, by ="cand_state")
 map_dem <- inner_join(states, candidate_contributions_2012_dem, by ="cand_state")
 
 
+# Create the amp for Republican 
 rep <- gplot(map_rep) +
       labs(title = "Republican Donations in US 2012 Election (By States)", 
            subtitle = "Source: Federal Election Commission") + 
@@ -182,6 +189,7 @@ rep <- gplot(map_rep) +
   
 rep
 
+# Create the amp for Democratic 
 dem <- gplot(map_dem) + 
       labs(title = "Democratic Donations in US 2012 Election (By States)", 
            subtitle = "Source: Federal Election Commission") +
@@ -192,7 +200,5 @@ dem <- gplot(map_dem) +
     
 dem
 ```
-
-###Graphs 
 
 [Github](https://github.com/lucysz/sds192-mp2-1/blob/master/Mini_project_2.Rmd)
