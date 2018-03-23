@@ -10,6 +10,9 @@ output:
 
 ```{r,include = FALSE}
 # Open the necessary libraries
+install.packages("ggmap")
+install.packages("maps")
+install.packages("mapdata")
 library(tidyverse)
 library(ggplot2)
 library(ggmap)
