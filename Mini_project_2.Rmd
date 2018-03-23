@@ -253,4 +253,4 @@ Based on the special cases discussed above and the complexity of the dataset, we
 **The party inclination across states fluctuates in different election cycles depending on personal incentives, such as the background of running candidates.** 
 
 
-*Github Link*[Github](https://github.com/lucysz/sds192-mp2-1/blob/master/Mini_project_2.Rmd)
+Here is a footnote for [Github](https://github.com/lucysz/sds192-mp2-1)
